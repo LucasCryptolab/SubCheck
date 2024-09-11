@@ -14,23 +14,25 @@ app.post('/checkSubscription', async (req, res) => {
   const { user_id } = req.body;
 
   try {
-    const response = await axios.get(
-      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`,
-      {
-        params: {
-          chat_id: GROUP_ID,
-          user_id: user_id,
-        },
-      }
-    );
+    const response = await axios.get(`https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`, {
+      params: {
+        chat_id: GROUP_ID,
+        user_id: user_id,
+      },
+    });
 
-    const isMember = response.data.result.status !== 'left';
+    const memberStatus = response.data.result.status;
+
+    // Check if the user is a valid member (not 'left' or 'kicked')
+    const isMember = memberStatus === 'member' || memberStatus === 'administrator' || memberStatus === 'creator';
+
     res.json({ is_subscribed: isMember });
   } catch (error) {
     console.error('Error checking subscription:', error);
     res.status(500).json({ error: 'Failed to check subscription status' });
   }
 });
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;
